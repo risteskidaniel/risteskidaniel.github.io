@@ -1,0 +1,227 @@
+{
+ "Backtest 2024/25": {
+  "matches": 8912,
+  "log_loss_1x2": 1.0073,
+  "brier_1x2": 0.6026,
+  "top_pick_hit_rate": 0.4994,
+  "confident_calls": {
+   "n": 1569,
+   "right": 1136,
+   "expected": 1128.6
+  },
+  "calibration": [
+   {
+    "bin": "0-10%",
+    "n": 619,
+    "predicted": 0.0689,
+    "observed": 0.0727
+   },
+   {
+    "bin": "10-20%",
+    "n": 2714,
+    "predicted": 0.1596,
+    "observed": 0.1629
+   },
+   {
+    "bin": "20-30%",
+    "n": 10569,
+    "predicted": 0.2575,
+    "observed": 0.2522
+   },
+   {
+    "bin": "30-40%",
+    "n": 7472,
+    "predicted": 0.3462,
+    "observed": 0.3516
+   },
+   {
+    "bin": "40-50%",
+    "n": 12610,
+    "predicted": 0.457,
+    "observed": 0.4573
+   },
+   {
+    "bin": "50-60%",
+    "n": 15483,
+    "predicted": 0.5429,
+    "observed": 0.5418
+   },
+   {
+    "bin": "60-70%",
+    "n": 3240,
+    "predicted": 0.6323,
+    "observed": 0.6284
+   },
+   {
+    "bin": "70-80%",
+    "n": 554,
+    "predicted": 0.741,
+    "observed": 0.7581
+   },
+   {
+    "bin": "80-90%",
+    "n": 188,
+    "predicted": 0.8394,
+    "observed": 0.8457
+   },
+   {
+    "bin": "90-100%",
+    "n": 23,
+    "predicted": 0.9146,
+    "observed": 0.8261
+   }
+  ]
+ },
+ "Backtest Jul–Dec 2025": {
+  "matches": 4365,
+  "log_loss_1x2": 1.0214,
+  "brier_1x2": 0.6121,
+  "top_pick_hit_rate": 0.485,
+  "confident_calls": {
+   "n": 734,
+   "right": 528,
+   "expected": 522.5
+  },
+  "calibration": [
+   {
+    "bin": "0-10%",
+    "n": 246,
+    "predicted": 0.0714,
+    "observed": 0.0894
+   },
+   {
+    "bin": "10-20%",
+    "n": 1190,
+    "predicted": 0.1609,
+    "observed": 0.1555
+   },
+   {
+    "bin": "20-30%",
+    "n": 5370,
+    "predicted": 0.2571,
+    "observed": 0.2633
+   },
+   {
+    "bin": "30-40%",
+    "n": 3658,
+    "predicted": 0.3467,
+    "observed": 0.3532
+   },
+   {
+    "bin": "40-50%",
+    "n": 6192,
+    "predicted": 0.4562,
+    "observed": 0.4512
+   },
+   {
+    "bin": "50-60%",
+    "n": 7584,
+    "predicted": 0.5434,
+    "observed": 0.5438
+   },
+   {
+    "bin": "60-70%",
+    "n": 1623,
+    "predicted": 0.6322,
+    "observed": 0.6266
+   },
+   {
+    "bin": "70-80%",
+    "n": 243,
+    "predicted": 0.7381,
+    "observed": 0.7366
+   },
+   {
+    "bin": "80-90%",
+    "n": 76,
+    "predicted": 0.8338,
+    "observed": 0.8684
+   },
+   {
+    "bin": "90-100%",
+    "n": 8,
+    "predicted": 0.9197,
+    "observed": 0.75
+   }
+  ]
+ },
+ "Live (Nov 2026)": {
+  "matches": 175,
+  "log_loss_1x2": 0.9474,
+  "brier_1x2": 0.5598,
+  "top_pick_hit_rate": 0.56,
+  "confident_calls": {
+   "n": 45,
+   "right": 39,
+   "expected": 32.5
+  },
+  "calibration": [
+   {
+    "bin": "0-10%",
+    "n": 13,
+    "predicted": 0.0657,
+    "observed": 0.0
+   },
+   {
+    "bin": "10-20%",
+    "n": 54,
+    "predicted": 0.1575,
+    "observed": 0.0926
+   },
+   {
+    "bin": "20-30%",
+    "n": 226,
+    "predicted": 0.2566,
+    "observed": 0.2611
+   },
+   {
+    "bin": "30-40%",
+    "n": 143,
+    "predicted": 0.3534,
+    "observed": 0.3007
+   },
+   {
+    "bin": "40-50%",
+    "n": 209,
+    "predicted": 0.4527,
+    "observed": 0.4785
+   },
+   {
+    "bin": "50-60%",
+    "n": 283,
+    "predicted": 0.5483,
+    "observed": 0.5371
+   },
+   {
+    "bin": "60-70%",
+    "n": 96,
+    "predicted": 0.6303,
+    "observed": 0.7083
+   },
+   {
+    "bin": "70-80%",
+    "n": 21,
+    "predicted": 0.735,
+    "observed": 0.7619
+   },
+   {
+    "bin": "80-90%",
+    "n": 5,
+    "predicted": 0.8676,
+    "observed": 1.0
+   }
+  ]
+ },
+ "Live layers (graded legs)": {
+  "legs": 32,
+  "right": 24,
+  "expected": 20.8,
+  "brier": {
+   "model": 0.1885,
+   "vector": 0.2007,
+   "transformer": 0.2008,
+   "market": 0.1846,
+   "consensus": 0.1914
+  }
+ }
+}

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Tachyon Flux works</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<style>
+*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}
+/* Layout: a match sheet. Narrow reading column; list → detail → scorecard, routed on the hash. */
+:root{
+  --bg:#f5f7f6; --panel:#ffffff; --fg:#14201b; --muted:#5d6b65; --line:#dfe5e2;
+  --accent:#0f6b4f; --accent-soft:#e3f1eb; --win:#1d7a3e; --win-soft:#e4f3e8; --loss:#b23a32; --loss-soft:#f8e6e4; --wait:#8a6d1f; --wait-soft:#f5efdc;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --panel:#161e1b; --fg:#e7eeea; --muted:#94a39c; --line:#26312d;
+  --accent:#4fc497; --accent-soft:#16302a; --win:#5fcf86; --win-soft:#15301f; --loss:#f07b72; --loss-soft:#3a1c1a; --wait:#e0c36a; --wait-soft:#33290f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --panel:#161e1b; --fg:#e7eeea; --muted:#94a39c; --line:#26312d;
+  --accent:#4fc497; --accent-soft:#16302a; --win:#5fcf86; --win-soft:#15301f; --loss:#f07b72; --loss-soft:#3a1c1a; --wait:#e0c36a; --wait-soft:#33290f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+a{color:var(--accent)}
+.mock{font:12px/1.4 var(--mono);color:var(--wait);background:var(--wait-soft);padding:6px 10px;border-radius:6px;margin-top:16px}
+header.top{padding-block:24px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{font:800 30px/1.05 var(--display);letter-spacing:-.01em}
+.sub{color:var(--muted)}
+.updated{font:12.5px var(--mono);color:var(--muted)}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-block:14px 18px}
+nav.tabs a,.filter button{font:600 13px var(--body);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);text-decoration:none;cursor:pointer}
+nav.tabs a[aria-current="page"],.filter button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.day{font:700 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:6px;text-decoration:none;color:inherit}
+.row:hover{border-color:var(--accent)}
+.row .ko{font:12.5px var(--mono);color:var(--muted)}
+.row .teams{min-width:0;font-weight:600}
+.row .teams small{display:block;font-weight:400;color:var(--muted)}
+.pill{font:600 12px var(--body);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.win{background:var(--win-soft);color:var(--win)} .pill.loss{background:var(--loss-soft);color:var(--loss)} .pill.wait{background:var(--wait-soft);color:var(--wait)}
+.picker{display:grid;grid-template-columns:minmax(140px,190px) 1fr;gap:10px;margin-bottom:16px}
+@media (max-width:480px){.picker{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;position:relative}
+.field label{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field select,.field input{font:15px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.sugg{position:absolute;top:100%;left:0;right:0;z-index:5;margin:4px 0 0;padding:4px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);max-height:320px;overflow:auto}
+.sugg li{padding:8px 10px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.sugg li small{color:var(--muted);font:12px var(--mono);white-space:nowrap}
+.sugg li[aria-selected="true"],.sugg li:hover{background:var(--accent-soft)}
+.sugg mark{background:none;color:var(--accent);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.mhead h2{font:800 24px/1.15 var(--display);margin:0;text-wrap:balance}
+.meta{font:12.5px var(--mono);color:var(--muted)}
+.summary{font-size:17px;margin:12px 0 0}
+.summary b{color:var(--accent)}
+.facts{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px}
+.fact span{display:block;font:11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fact strong{font:500 18px var(--mono)}
+h3{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.mkts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mkt{border:1px solid var(--line);border-radius:8px;padding:10px}
+.mkt.pick{border-color:var(--accent);background:var(--accent-soft)}
+.mkt .lab{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.mkt .val{font:500 22px var(--mono)}
+.bar{position:relative;height:6px;background:var(--line);border-radius:3px;margin-top:6px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.bar b{position:absolute;top:-3px;height:12px;border-left:1.5px solid var(--fg);border-right:1.5px solid var(--fg);opacity:.55}
+.mkt .rng{font:11.5px var(--mono);color:var(--muted)}
+.hit{font:600 12px var(--body)} .hit.win{color:var(--win)} .hit.loss{color:var(--loss)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:600 12px var(--body);color:var(--muted)}
+td.n{font:500 15px var(--mono);text-align:right;white-space:nowrap}
+tr.total td{font-weight:600}
+tr.total td.n{color:var(--accent);font-weight:600}
+tr.bench td{color:var(--muted)}
+details{margin-top:2px}
+summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"ⓘ ";color:var(--accent)}
+details p{margin:6px 0 2px;font-size:13.5px;color:var(--fg);max-width:62ch}
+.flags{display:flex;flex-wrap:wrap;gap:6px}
+.flag{font-size:13px;background:var(--wait-soft);color:var(--wait);padding:4px 9px;border-radius:6px}
+.result{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.score{font:800 34px var(--display)}
+.note{font-size:13px;color:var(--muted);margin-top:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi strong{font:800 28px var(--display)}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px)}to{transform:none}}}
+.cal svg{width:100%;max-width:520px;height:auto;display:block}
+.cal text{fill:var(--muted);font:11px var(--mono)}
+.journey{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.journey li{border-left:3px solid var(--line);padding:2px 0 2px 12px}
+.journey li.now{border-color:var(--accent)}
+.journey b{display:block}
+.journey span{color:var(--muted);font-size:13.5px}
+.kind{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.foot{margin-top:28px;font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.doc h1{font:800 30px/1.1 var(--display)} .doc h2{font:800 21px var(--display);margin-top:32px} .doc h3{font:700 16px var(--display);text-transform:none;letter-spacing:0;color:var(--fg)}
+.doc p,.doc li{max-width:68ch} .doc table{margin:10px 0} .doc .katex-display{overflow-x:auto;overflow-y:hidden;padding:6px 0}
+</style></head><body><div class="wrap doc"><p style="margin-top:20px"><a href="./">← Tachyon Flux</a></p>
+<h1 id="how-the-forecast-is-built">How the forecast is built</h1>
+<p>Every Tachyon Flux probability comes from a stack of statistical
+models that never see a bookmaker price. Rating engines estimate team
+strength, a Bayesian layer learns which factors matter and how unsure we
+are, a simulator plays each match 1,000,000 times, and two
+machine-learning models give independent second opinions.</p>
+<h2 id="rating-engines-how-strong-is-each-team">1. Rating engines: how
+strong is each team?</h2>
+<p>Three engines estimate each team’s expected goals for the match. All
+are re-fitted walk-forward, so a rating before a match never contains
+that match.</p>
+<h3 id="dixoncoles-1997">Dixon–Coles (1997)</h3>
+<p>Goals are modelled as Poisson counts driven by attack strength,
+defence strength and a home advantage per league:</p>
+<p><span class="math display">\log \lambda_{home} = h_{league} +
+\alpha_{home} + \delta_{away}, \qquad \log \mu_{away} = \alpha_{away} +
+\delta_{home}</span></p>
+<p>A plain Poisson model gets low scores wrong: real football has more
+0-0 and 1-1 draws than independent Poisson counts predict. Dixon–Coles
+corrects the four low-score cells with a dependence parameter ρ, which
+we fit from data rather than fixing it:</p>
+<p><span class="math display">P(x, y) = \tau_{\rho}(x, y; \lambda,
+\mu)\; \mathrm{Pois}(x; \lambda)\; \mathrm{Pois}(y; \mu)</span></p>
+<ul>
+<li><strong>Time decay:</strong> each past match is weighted by e^(−ξ ·
+days ago), with ξ = 0.0019 per day (a half-life of about one year), so
+recent form counts more.</li>
+<li><strong>One scale per country:</strong> all divisions of a country
+are fitted together, so promoted and relegated teams carry their rating
+across leagues.</li>
+<li><strong>Ridge penalty:</strong> teams with few matches are pulled
+towards average instead of producing extreme ratings.</li>
+<li><strong>Fitting:</strong> weighted maximum likelihood with analytic
+gradients, warm-started from the previous week’s fit.</li>
+</ul>
+<h3 id="xg-dixoncoles">xG-Dixon–Coles</h3>
+<p>The same model fitted on “performance goals”: half the actual score
+plus half the chance quality (expected goals where available, otherwise
+shots on target × league conversion rate). Chance quality is steadier
+than goals, so this engine reacts less to lucky or unlucky results.</p>
+<h3 id="kalman-filter-ratings-that-move">Kalman filter: ratings that
+move</h3>
+<p>The Kalman filter treats every team’s attack and defence as a hidden
+state that drifts week to week: a state-space model with a Gaussian
+state and a Poisson observation.</p>
+<ul>
+<li><strong>Predict:</strong> before each match, the uncertainty of a
+team’s rating grows with the days since its last game, and grows extra
+after the summer break.</li>
+<li><strong>Update:</strong> after each match, the rating moves by an
+amount that depends on how surprising the result was and how sure we
+already were (a Newton/Laplace step on the Poisson likelihood).</li>
+<li><strong>Observation:</strong> 0.5 × goals + 0.5 × chance quality, so
+it learns from performance, not just scorelines.</li>
+</ul>
+<h3 id="clubelo">ClubElo</h3>
+<p>An independent Elo rating for every European club on one scale, taken
+from the Monday before each match, so a Norwegian side can be compared
+with an English one.</p>
+<h2 id="bayesian-layer-what-matters-and-how-sure-are-we">2. Bayesian
+layer: what matters, and how sure are we?</h2>
+<p>The MCMC layer learns how much everything else matters (rest days,
+form, line-up strength, Elo gaps and other pre-match features) and
+attaches an honest uncertainty to every forecast.</p>
+<p><span class="math display">\log E[\text{goals}_s] =
+w_{dc}\log\lambda^{dc}_s + w_{xg}\log\lambda^{xg}_s +
+w_{k}\log\lambda^{k}_s + \sum_j \beta_j\, x_{sj}, \qquad \beta_j \sim
+\mathcal{N}(0,\ 0.15^2)</span></p>
+<p>The prior is deliberately sceptical: every effect starts at zero and
+must earn its size from the data. Our own Metropolis–Hastings sampler
+starts at the posterior mode with a Hessian-shaped (Laplace) proposal
+and mixes in seconds. Each match gets 300 posterior draws of both teams’
+expected goals, which feed the 90% ranges shown next to each
+probability.</p>
+<p><strong>Calibration:</strong> two parameters (sharpness a and a draw
+shift b) are fitted on a later time window, on predictions the model
+never trained on, so that when Tachyon Flux says 70%, it happens about
+70% of the time.</p>
+<p><span class="math display">p_i&#39; \propto p_i^{\,a}\; e^{\,b\,[i =
+\text{draw}]}</span></p>
+<h2 id="monte-carlo-simulator-a-million-matches-minute-by-minute">3.
+Monte Carlo simulator: a million matches, minute by minute</h2>
+<p><span class="math display">r_t = \bar{r} \cdot m(t) \cdot
+g(\text{state}) \cdot c(\text{red cards}) \cdot e^{W_t} \cdot
+\text{shocks} \cdot \text{referee}</span></p>
+<p>Every factor is measured from 32,303 real matches with full event
+data, except the chaos terms, which are stated assumptions.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor</th>
+<th>What it captures</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Minute profile m(t)</td>
+<td>Goals cluster late in each half</td>
+<td>Share of goals per minute, 1–95</td>
+</tr>
+<tr class="even">
+<td>Game state g</td>
+<td>Teams change strategy with the score, as game theory predicts</td>
+<td>Level ×1.09, leading ×0.96, trailing ×0.92 (measured)</td>
+</tr>
+<tr class="odd">
+<td>Red cards c</td>
+<td>A sending-off shifts the balance</td>
+<td>0.10% per team-minute; 10 men ×0.54, opponent ×1.56</td>
+</tr>
+<tr class="even">
+<td>Penalties</td>
+<td>Scaled by each referee’s tendency</td>
+<td>8% of all goals</td>
+</tr>
+<tr class="odd">
+<td>Momentum</td>
+<td>Do teams score more right after scoring?</td>
+<td>No: −7%, so the model does not invent momentum</td>
+</tr>
+<tr class="even">
+<td>Brownian drift e^(W_t)</td>
+<td>Fatigue, confidence and tactical shifts move the scoring rate</td>
+<td>Random walk, σ = 0.015 per minute (assumed)</td>
+</tr>
+<tr class="odd">
+<td>Shocks</td>
+<td>Injuries, tactical collapse</td>
+<td>0.2% per minute, rate ×0.85 (assumed)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Brownian motion:</strong> in 1827 Robert Brown watched pollen
+grains jitter in water; Einstein later explained it as countless
+molecular collisions. A match behaves the same way, so W_t is a Brownian
+random walk in each team’s scoring rate, and no two simulated matches
+unfold alike.</p>
+<p><strong>MCMC inside the Monte Carlo:</strong> the million simulations
+are split across the 300 posterior draws, so each forecast carries both
+the randomness of football and the model’s own uncertainty about team
+strength.</p>
+<h2 id="second-opinions">4. Second opinions</h2>
+<p><strong>Vector database:</strong> each match is stored as a 16-number
+embedding (PCA of ratings and pre-match features). For a new match we
+find the 200 closest past matches by cosine similarity and count how
+they ended.</p>
+<p><strong>Transformer:</strong> each team’s last 12 matches are read as
+a sequence of tokens; self-attention decides which past matches matter
+most, and the network builds a 64-dimensional picture of each team.
+Trained before July 2023 and judged once on 2024/25.</p>
+<h2 id="consensus-risk-penalty-and-score">5. Consensus, risk penalty and
+score</h2>
+<p>Consensus is the average of the available layers (model, vector,
+transformer and the market benchmark with the bookmaker margin removed).
+The risk penalty takes points off for warning signs in team news and
+probable line-ups. Score = consensus − penalty; picks are ranked by
+it.</p>
+<h2 id="how-we-keep-it-honest">6. How we keep it honest</h2>
+<ul>
+<li><strong>Leak-free:</strong> every rating, feature and fit uses only
+matches played strictly before the one being forecast.</li>
+<li><strong>Separate windows:</strong> fitted on 2023/24, judged once on
+2024/25; the first half of 2026 stays sealed as a final test.</li>
+<li><strong>Pre-registered layers:</strong> each idea is written down
+before testing and kept only if it beats the current model on the same
+matches.</li>
+<li><strong>Tested and not used:</strong> bivariate Poisson,
+league-table stakes, weather, and blending the vector and transformer
+layers into the main model.</li>
+</ul>
+
+<p class="note">Tachyon Flux by Qaugmented. Probabilities, not certainties. Not betting advice.</p></div><script>addEventListener("DOMContentLoaded",()=>document.querySelectorAll(".math").forEach(el=>{try{katex.render(el.textContent,el,{displayMode:el.classList.contains("display"),throwOnError:false})}catch(e){}}))</script></body></html>

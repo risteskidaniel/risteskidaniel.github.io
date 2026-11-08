@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tachyon Flux by Qaugmented</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Football projections from a million simulated matches, graded against every result.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}
+/* Layout: a match sheet. Narrow reading column; list → detail → scorecard, routed on the hash. */
+:root{
+  --bg:#f5f7f6; --panel:#ffffff; --fg:#14201b; --muted:#5d6b65; --line:#dfe5e2;
+  --accent:#0f6b4f; --accent-soft:#e3f1eb; --win:#1d7a3e; --win-soft:#e4f3e8; --loss:#b23a32; --loss-soft:#f8e6e4; --wait:#8a6d1f; --wait-soft:#f5efdc;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --panel:#161e1b; --fg:#e7eeea; --muted:#94a39c; --line:#26312d;
+  --accent:#4fc497; --accent-soft:#16302a; --win:#5fcf86; --win-soft:#15301f; --loss:#f07b72; --loss-soft:#3a1c1a; --wait:#e0c36a; --wait-soft:#33290f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --panel:#161e1b; --fg:#e7eeea; --muted:#94a39c; --line:#26312d;
+  --accent:#4fc497; --accent-soft:#16302a; --win:#5fcf86; --win-soft:#15301f; --loss:#f07b72; --loss-soft:#3a1c1a; --wait:#e0c36a; --wait-soft:#33290f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+a{color:var(--accent)}
+.mock{font:12px/1.4 var(--mono);color:var(--wait);background:var(--wait-soft);padding:6px 10px;border-radius:6px;margin-top:16px}
+header.top{padding-block:24px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{font:800 30px/1.05 var(--display);letter-spacing:-.01em}
+.sub{color:var(--muted)}
+.updated{font:12.5px var(--mono);color:var(--muted)}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-block:14px 18px}
+nav.tabs a,.filter button{font:600 13px var(--body);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);text-decoration:none;cursor:pointer}
+nav.tabs a[aria-current="page"],.filter button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.day{font:700 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:6px;text-decoration:none;color:inherit}
+.row:hover{border-color:var(--accent)}
+.row .ko{font:12.5px var(--mono);color:var(--muted)}
+.row .teams{min-width:0;font-weight:600}
+.row .teams small{display:block;font-weight:400;color:var(--muted)}
+.pill{font:600 12px var(--body);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.win{background:var(--win-soft);color:var(--win)} .pill.loss{background:var(--loss-soft);color:var(--loss)} .pill.wait{background:var(--wait-soft);color:var(--wait)}
+.picker{display:grid;grid-template-columns:minmax(140px,190px) 1fr;gap:10px;margin-bottom:16px}
+@media (max-width:480px){.picker{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;position:relative}
+.field label{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field select,.field input{font:15px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.sugg{position:absolute;top:100%;left:0;right:0;z-index:5;margin:4px 0 0;padding:4px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);max-height:320px;overflow:auto}
+.sugg li{padding:8px 10px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.sugg li small{color:var(--muted);font:12px var(--mono);white-space:nowrap}
+.sugg li[aria-selected="true"],.sugg li:hover{background:var(--accent-soft)}
+.sugg li.grp{cursor:default;font:700 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 10px 4px;background:none!important}
+.sugg mark{background:none;color:var(--accent);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+.mhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.mhead h2{font:800 24px/1.15 var(--display);margin:0;text-wrap:balance}
+.meta{font:12.5px var(--mono);color:var(--muted)}
+.summary{font-size:17px;margin:12px 0 0}
+.summary b{color:var(--accent)}
+.facts{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px}
+.fact span{display:block;font:11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fact strong{font:500 18px var(--mono)}
+h3{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.mkts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mkt{border:1px solid var(--line);border-radius:8px;padding:10px}
+.mkt.pick{border-color:var(--accent);background:var(--accent-soft)}
+.mkt .lab{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.mkt .val{font:500 22px var(--mono)}
+.bar{position:relative;height:6px;background:var(--line);border-radius:3px;margin-top:6px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.bar b{position:absolute;top:-3px;height:12px;border-left:1.5px solid var(--fg);border-right:1.5px solid var(--fg);opacity:.55}
+.mkt .rng{font:11.5px var(--mono);color:var(--muted)}
+.hit{font:600 12px var(--body)} .hit.win{color:var(--win)} .hit.loss{color:var(--loss)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:600 12px var(--body);color:var(--muted)}
+td.n{font:500 15px var(--mono);text-align:right;white-space:nowrap}
+tr.total td{font-weight:600}
+tr.total td.n{color:var(--accent);font-weight:600}
+tr.bench td{color:var(--muted)}
+details{margin-top:2px}
+summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"ⓘ ";color:var(--accent)}
+details p{margin:6px 0 2px;font-size:13.5px;color:var(--fg);max-width:62ch}
+.flags{display:flex;flex-wrap:wrap;gap:6px}
+.flag{font-size:13px;background:var(--wait-soft);color:var(--wait);padding:4px 9px;border-radius:6px}
+.result{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.score{font:800 34px var(--display)}
+.note{font-size:13px;color:var(--muted);margin-top:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi strong{font:800 28px var(--display)}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px)}to{transform:none}}}
+.cal svg{width:100%;max-width:520px;height:auto;display:block}
+.cal text{fill:var(--muted);font:11px var(--mono)}
+.journey{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.journey li{border-left:3px solid var(--line);padding:2px 0 2px 12px}
+.journey li.now{border-color:var(--accent)}
+.journey b{display:block}
+.journey span{color:var(--muted);font-size:13.5px}
+.kind{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.foot{margin-top:28px;font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Tachyon Flux <span style="font:500 15px var(--body);color:var(--muted);letter-spacing:0">by Qaugmented</span></div>
+    <div class="sub">To boldly project what no one has projected before.</div>
+    <div class="updated" id="updated">Loading data…</div>
+  </header>
+  <nav class="tabs" aria-label="Views">
+    <a href="#match" id="tab-match">Match</a>
+    <a href="#scorecard" id="tab-scorecard">Scorecard</a>
+    <a href="#journey" id="tab-journey">Journey</a>
+  </nav>
+  <main id="view"></main>
+  <footer class="foot"><a href="../">← Portfolio</a><a href="how-it-works.html">How the forecast is built</a><a href="RELEASE_NOTES.md">Release notes</a></footer>
+</div>
+<script>
+const DATA="data/";
+const MK=[["1","Home win"],["X","Draw"],["2","Away win"],["tg_3plus","3+ goals"],["tg_0_2","0–2 goals"],["gg","Both teams score"]];
+const NAME=Object.fromEntries(MK);
+const EXPL={
+ model:["Model","Our core forecast.","Three rating engines (Dixon–Coles with a low-score correction, an xG-based Dixon–Coles, and a Kalman filter that tracks how team strength changes week to week) are combined with ClubElo ratings in a Bayesian Poisson regression fitted by MCMC. The output is calibrated on matches the model never trained on, then simulated 1,000,000 times, minute by minute."],
+ vector:["Vector database","How the 200 most similar past matches ended.","Each match is stored as a 16-number embedding (PCA of team ratings and pre-match features). We find the 200 past matches closest by cosine similarity and count how they finished. Second opinion only."],
+ transformer:["Transformer","A neural network reading each team's last 12 matches.","Each past match is a token; self-attention decides which of a team's last 12 matches matter for this one, and the network builds a 64-dimensional picture of each team. Trained on matches before July 2023, judged on 2024/25. Second opinion only."],
+ market:["Market benchmark","The market's consensus view, as a probability.","The market's implied probability with the margin taken out (power method). It is the hardest benchmark in football. Shown for comparison only: it is never an input to our model. No prices are shown."],
+ consensus:["Consensus","The average of the four layers above.","When independent methods agree, a forecast is more reliable. When they disagree, it shows here."],
+ penalty:["Risk penalty","Points off for warning signs.","Flags from team news and probable line-ups: 3 days' rest or fewer, an unsettled formation, regulars missing, a new coach, a suspension."],
+ score:["Score","Consensus minus the risk penalty.","The number picks are ranked by."]};
+const pc=x=>x==null?"–":Math.round(x*100)+"%";
+const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const won=(k,[h,a])=>({"1":h>a,"X":h===a,"2":h<a,"tg_3plus":h+a>=3,"tg_0_2":h+a<=2,"gg":h>0&&a>0}[k]);
+let candOnly=false,INDEX=null,SUMMARY=null,DAY=null,curDate=null,dayCache={};
+const fmtDate=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+const fmtKo=iso=>iso?new Date(iso).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris",timeZoneName:"short"}):"";
+const kindLabel=k=>({live:"Live forecast",backtest:"Backtest (out-of-sample)",v1:"v1 model"}[k]||k);
+async function getJSON(p){const r=await fetch(DATA+p,{cache:"no-cache"});if(!r.ok)throw new Error(p);return r.json()}
+const TOP=["Premier League","La Liga","Serie A","Bundesliga","Ligue 1"];
+const lgRank=l=>{const i=TOP.indexOf(l);return i<0?TOP.length:i};
+const byLeague=(a,b)=>lgRank(a.league)-lgRank(b.league)||a.league.localeCompare(b.league)||(a.ko||"").localeCompare(b.ko||"")||a.home.localeCompare(b.home);
+async function loadDay(d){const mo=d.slice(0,7);if(!dayCache[mo])dayCache[mo]=await getJSON("months/"+mo+".json");return dayCache[mo].filter(r=>r.date===d).sort(byLeague)}
+function expl(key){const[t,s,l]=EXPL[key];return `<div>${t}</div><details><summary>${s}</summary><p>${l}</p></details>`}
+function pickOf(m){if(m.legs&&m.legs.length)return m.legs[0].m;const c=["1","X","2","tg_3plus","tg_0_2"].filter(k=>m.p[k]!=null);return c.sort((a,b)=>m.p[b]-m.p[a])[0]}
+function status(m){if(!m.res)return"wait";return won(pickOf(m),m.res)?"win":"loss"}
+const CANDTXT="A candidate pick is a projection that passed every filter: model at least 62%, market benchmark at least 60%, model and market within 8 points, not rejected by both second opinions, and no new-coach debut. Only candidates get the vector, transformer, consensus and risk checks.";
+const STXT={win:"✓ Right",loss:"✗ Wrong",wait:"Pending"};
+
+function picker(){
+  const opts=INDEX.dates.map(d=>`<option value="${d.date}"${d.date===curDate?" selected":""}>${fmtDate(d.date)} · ${d.n} · ${d.kinds.map(kindLabel).join(", ")}</option>`).join("");
+  return `<div class="picker"><div class="field"><label for="date">Date</label><select id="date">${opts}</select></div>
+  <div class="field"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><label for="q">Match</label><label for="cand" style="text-transform:none;letter-spacing:0;font-weight:500;cursor:pointer"><input type="checkbox" id="cand"${candOnly?" checked":""} style="width:auto;padding:0;margin:0 4px 0 0;vertical-align:-2px">Candidate picks only</label></div><input id="q" type="text" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list" autocomplete="off" placeholder="Type a team, e.g. Dortmund"><ul id="sugg" class="sugg" role="listbox" hidden></ul></div></div>`;
+}
+function wirePicker(){
+  const q=document.getElementById("q"),ul=document.getElementById("sugg"),dt=document.getElementById("date");let items=[],act=-1;
+  const hl=(t,w)=>{if(!w)return esc(t);const i=t.toLowerCase().indexOf(w);return i<0?esc(t):esc(t.slice(0,i))+"<mark>"+esc(t.slice(i,i+w.length))+"</mark>"+esc(t.slice(i+w.length))};
+  function show(all){const w=all===true?"":q.value.trim().toLowerCase();
+    items=DAY.map((m,i)=>[m,i]).filter(([m])=>!candOnly||(m.legs&&m.legs.length)).filter(([m])=>!w||(m.home+" "+m.away+" "+m.league).toLowerCase().includes(w));act=items.length?0:-1;
+    let last=null;ul.innerHTML=items.length?items.slice(0,80).map(([m,i],k)=>{const head=m.league!==last?`<li class="grp" role="presentation">${esc(m.league)}</li>`:"";last=m.league;return head+`<li role="option" data-i="${i}" aria-selected="${k===act}"><span>${hl(m.home+" – "+m.away,w)}</span><small>${fmtKo(m.ko)}</small></li>`}).join(""):`<li aria-disabled="true">No match on this date</li>`;
+    ul.hidden=false;q.setAttribute("aria-expanded","true")}
+  const close=()=>{ul.hidden=true;q.setAttribute("aria-expanded","false")};
+  q.addEventListener("focus",()=>{q.select();show(true)});q.addEventListener("input",show);
+  q.addEventListener("keydown",e=>{if(ul.hidden&&e.key==="ArrowDown")show();
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();if(!items.length)return;act=(act+(e.key==="ArrowDown"?1:-1)+items.length)%items.length;[...ul.querySelectorAll("li[data-i]")].forEach((li,k)=>li.setAttribute("aria-selected",k===act))}
+    if(e.key==="Enter"&&act>=0){e.preventDefault();location.hash="m-"+curDate+"-"+items[act][1]} if(e.key==="Escape")close()});
+  ul.addEventListener("mousedown",e=>{const li=e.target.closest("li[data-i]");if(li){e.preventDefault();location.hash="m-"+curDate+"-"+li.dataset.i}});
+  q.addEventListener("blur",()=>setTimeout(close,120));
+  dt.addEventListener("change",()=>{location.hash="d-"+dt.value});
+  document.getElementById("cand").addEventListener("change",e=>{candOnly=e.target.checked;q.focus()});
+}
+function detail(m){
+  const pk=pickOf(m),s=status(m),side=pk==="1"?m.home:pk==="2"?m.away:null,leg=(m.legs||[])[0];
+  const prob=leg?leg.consensus:m.p[pk];
+  let agree="";
+  if(leg){const v=["model","vector","transformer"].map(k=>leg[k]).filter(x=>x!=null);const sp=Math.max(...v)-Math.min(...v);agree=sp<0.08?" Strong agreement across layers.":sp<0.15?" Layers mostly agree.":" Layers disagree: treat with care."}
+  const sc=m.scores&&m.scores[0];
+  let h=`<section class="card"><div class="mhead"><h2>${esc(m.home)} – ${esc(m.away)}</h2><span class="pill ${s}">${STXT[s]}</span></div>
+  <div class="meta">${esc(m.league)} · ${fmtDate(m.date)}${m.ko?" · "+fmtKo(m.ko):""} · <span class="kind">${kindLabel(m.kind)}${m.window?" · "+esc(m.window):""}</span></div>
+  <p class="summary">Most likely: <b>${side?esc(side)+" to win":NAME[pk]} (${pc(prob)})</b>.${agree}</p>${sc?`<p class="summary" style="font-size:15px;margin-top:6px">Highest-probability score: <b>${sc[0]}–${sc[1]} (${pc(sc[2])})</b></p><details><summary>Why can a 2–0 favourite still have 3+ goals as the pick?</summary><p>No single scoreline is likely: even the top one happens only about 1 time in 10. A pick such as "Home win" or "3+ goals" adds up every scoreline that satisfies it. Many scorelines of around 5–9% each make one pick of 60–75%.</p></details>`:""}
+  <div class="facts">${m.xg?`<div class="fact"><span>xG</span><strong>${m.xg[0].toFixed(2)} – ${m.xg[1].toFixed(2)}</strong></div>`:""}
+  ${m.scores?`<div class="fact"><span>Top scorelines</span><strong>${m.scores.slice(0,4).map(x=>x[0]+"–"+x[1]+" "+pc(x[2])).join(" · ")}</strong></div>`:""}</div></section>`;
+  if(m.res)h+=`<section class="card"><h3>Result</h3><div class="result"><span class="score">${m.res.join("–")}</span><span class="pill ${s}">Pick: ${NAME[pk]} · ${STXT[s]}</span></div></section>`;
+  h+=`<section class="card"><h3>All markets</h3><div class="mkts">`;
+  for(const[k,t]of MK){const p=m.p[k];if(p==null)continue;const r=m.r&&m.r[k];
+    const hit=m.res?`<span class="hit ${won(k,m.res)?"win":"loss"}">${won(k,m.res)?"✓":"✗"}</span>`:"";
+    h+=`<div class="mkt${k===pk?" pick":""}"><div class="lab"><span>${t}${k===pk?" · pick":""}</span>${hit}</div><div class="val">${pc(p)}</div>
+    <div class="bar"><i style="width:${p*100}%"></i>${r?`<b style="left:${r[0]*100}%;width:${(r[1]-r[0])*100}%"></b>`:""}</div>
+    <div class="rng">${r?`90% range ${pc(r[0])}–${pc(r[1])}`:"&nbsp;"}</div></div>`}
+  h+=`</div>${m.r?`<details><summary>What is the 90% range?</summary><p>We re-run the forecast with 300 plausible versions of each team's strength, drawn by MCMC. 90% of them land inside this range.</p></details>`:""}</section>`;
+  if(leg){
+    for(const l of m.legs){
+      h+=`<section class="card"><h3>How we got there: ${NAME[l.m]}${l.top20?" · Top 20 pick":""}</h3><div class="tbl"><table><thead><tr><th>Layer</th><th style="text-align:right">Probability</th></tr></thead><tbody>`;
+      for(const k of["model","vector","transformer"])if(l[k]!=null)h+=`<tr><td>${expl(k)}</td><td class="n">${pc(l[k])}</td></tr>`;
+      if(l.market!=null)h+=`<tr class="bench"><td>${expl("market")}</td><td class="n">${pc(l.market)}</td></tr>`;
+      h+=`<tr class="total"><td>${expl("consensus")}</td><td class="n">${pc(l.consensus)}</td></tr><tr><td>${expl("penalty")}</td><td class="n">${l.penalty?"−"+Math.round(l.penalty*100):"0"}</td></tr><tr class="total"><td>${expl("score")}</td><td class="n">${Math.round((l.score||0)*100)}</td></tr></tbody></table></div>
+      <h3 style="margin-top:16px">Risk flags</h3>${l.flags&&l.flags.length?`<div class="flags">${l.flags.map(f=>`<span class="flag">${esc(f)}</span>`).join("")}</div>`:`<p class="note" style="margin:0">No flags from team news or line-ups.</p>`}</section>`}
+  }else h+=`<section class="card"><h3>How we got there</h3><div class="tbl"><table><tbody><tr><td>${expl("model")}</td><td class="n">${pc(m.p[pk])}</td></tr></tbody></table></div><p class="note">${m.kind==="backtest"?"Backtest forecast: made walk-forward, using only matches played before this one. Second-opinion layers run on live matchdays only.":"Not a candidate pick, so the second-opinion layers did not run. ${CANDTXT}"}</p></section>`;
+  h+=`<p class="note">Projections from Bayesian inference, Monte Carlo simulation and machine learning. They are probabilities, not certainties: a 70% projection is expected to miss 3 times in 10.</p>`;
+  return h;
+}
+function calChart(cal){
+  const W=520,H=300,L=44,B=30,T=12,R=26,x=v=>L+v*(W-L-R),y=v=>H-B-v*(H-B-T);
+  let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration: predicted versus observed"><line x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  for(const t of[0,.2,.4,.6,.8,1])g+=`<text x="${x(t)}" y="${H-10}" text-anchor="middle">${t*100}%</text><text x="${L-6}" y="${y(t)+4}" text-anchor="end">${t*100}%</text>`;
+  const pts=cal.filter(c=>c.n>=30);
+  g+=`<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${pts.map(c=>x(c.predicted)+","+y(c.observed)).join(" ")}"/>`;
+  for(const c of pts)g+=`<circle cx="${x(c.predicted)}" cy="${y(c.observed)}" r="4" fill="var(--accent)"><title>${c.bin}: predicted ${pc(c.predicted)}, happened ${pc(c.observed)} (${c.n} forecasts)</title></circle>`;
+  return g+`</svg>`;
+}
+function scorecard(){
+  let h="";
+  for(const[name,s]of Object.entries(SUMMARY)){
+    if(name.startsWith("Live layers")){
+      h+=`<section class="card"><h3>${esc(name)}</h3><div class="kpis"><div class="kpi"><span>Legs right</span><strong>${s.right} of ${s.legs}</strong></div><div class="kpi"><span>Expected right</span><strong>${s.expected}</strong></div></div>
+      <div class="tbl"><table><thead><tr><th>Layer (Brier, lower is better)</th><th style="text-align:right">Brier</th></tr></thead><tbody>${Object.entries(s.brier).filter(([,v])=>v!=null).map(([k,v])=>`<tr${k==="market"?' class="bench"':""}><td>${EXPL[k][0]}</td><td class="n">${v.toFixed(3)}</td></tr>`).join("")}</tbody></table></div></section>`;continue}
+    const c=s.confident_calls;
+    h+=`<section class="card"><h3>${esc(name)}</h3><div class="kpis">
+    <div class="kpi"><span>Matches graded</span><strong>${s.matches.toLocaleString("en-GB")}</strong></div>
+    <div class="kpi"><span>Confident calls (65%+) right</span><strong>${c.right.toLocaleString("en-GB")} / ${c.n.toLocaleString("en-GB")}</strong></div>
+    <div class="kpi"><span>Expected right</span><strong>${c.expected.toLocaleString("en-GB")}</strong></div>
+    <div class="kpi"><span>1X2 Brier score</span><strong>${s.brier_1x2.toFixed(3)}</strong></div></div>
+    <div class="cal" style="margin-top:14px"><h3>Calibration: when we say X%, how often does it happen?</h3>${calChart(s.calibration)}</div>
+    <details><summary>How to read this</summary><p>Each dot groups every forecast in a 10-point band and plots how often it came true. On the dashed line, a 70% forecast happens 70% of the time. Bands with fewer than 30 forecasts are left out.</p></details></section>`}
+  return h||`<p class="note">No graded matches yet.</p>`;
+}
+function journey(){
+  const J=[["Sep 2026","v1: the first engine","Dixon–Coles with a 1,000,000-run Monte Carlo. Raw 1X2 strike rate was only 35%, so it was blended 50/50 with the market. Lesson: the blend hid how good our own projections really were. From v2 on, every number is ours."],
+  ["Oct 2026","v1.x: more engines, same problem","Kalman ratings, a vector memory, squad-impact and MCMC were bolted on. Over 40 engine versions in a month, and no clean way to tell which layer helped."],
+  ["31 Oct 2026","v2: rebuilt from the foundation","New database schema, leak-free walk-forward testing, every prediction stored with the run that made it."],
+  ["2 Nov 2026","Pure-0: no odds anywhere","Market-free ensemble, calibrated on unseen matches. 2024/25 confirmation: 8,912 matches, 1X2 and goals calibrated."],
+  ["2 Nov 2026","Pure-1: two layers earned their place","Kalman on chance quality and ClubElo beat Pure-0 on the same matches. Seven other ideas (stakes, weather, Opta, Transfermarkt…) did not."],
+  ["7 Nov 2026","Live layers and MC v3","Vector database and transformer as second opinions, MCMC uncertainty inside a minute-by-minute simulator."],
+  ["8 Nov 2026","Tachyon Flux goes public","Every forecast published before kick-off and graded after it, wins and misses alike."]];
+  return `<section class="card"><h3>We tried, we failed, here is where we stand</h3><ul class="journey">${J.map(([d,t,x],i)=>`<li${i===J.length-1?' class="now"':""}><span>${d}</span><b>${t}</b><span>${x}</span></li>`).join("")}</ul><p class="note"><a href="RELEASE_NOTES.md">Full release notes</a></p></section>`;
+}
+function tabs(cur){for(const t of["match","scorecard","journey"]){const a=document.getElementById("tab-"+t);if(t===cur)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")}}
+async function render(){
+  const v=document.getElementById("view"),hsh=location.hash.slice(1);
+  try{
+    if(!INDEX){INDEX=await getJSON("index.json");SUMMARY=await getJSON("summary.json").catch(()=>({}));
+      document.getElementById("updated").textContent="Data updated "+new Date(INDEX.generated_at).toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris",timeZoneName:"short"})+" · "+INDEX.dates.reduce((a,d)=>a+d.n,0).toLocaleString("en-GB")+" forecasts"}
+    if(hsh==="scorecard"){tabs("scorecard");v.innerHTML=scorecard();return}
+    if(hsh==="journey"){tabs("journey");v.innerHTML=journey();return}
+    tabs("match");
+    let m=hsh.match(/^m-(\d{4}-\d{2}-\d{2})-(\d+)$/),d=hsh.match(/^d-(\d{4}-\d{2}-\d{2})$/);
+    curDate=m?m[1]:d?d[1]:(curDate||INDEX.dates[0].date);
+    DAY=await loadDay(curDate);
+    v.innerHTML=picker()+(m&&DAY[+m[2]]?detail(DAY[+m[2]]):`<section class="card"><h3>No match selected</h3><p class="note" style="margin:0">${DAY.length} forecasts on ${fmtDate(curDate)}. Search for a team above to see its forecast. ${DAY.filter(m=>m.legs&&m.legs.length).length} are candidate picks.</p><details><summary>What is a candidate pick?</summary><p>${CANDTXT}</p></details></section>`);
+    wirePicker();
+  }catch(e){v.innerHTML=`<section class="card"><h3>Data not loaded</h3><p class="note" style="margin:0">Could not load ${esc(e.message)}. The data files are published next to this page in data/.</p></section>`}
+}
+addEventListener("hashchange",()=>{render();scrollTo(0,0)});render();
+</script>
+</body>
+</html>
