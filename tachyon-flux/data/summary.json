@@ -146,14 +146,14 @@
   ]
  },
  "Live (Nov 2026)": {
-  "matches": 175,
-  "log_loss_1x2": 0.9474,
-  "brier_1x2": 0.5598,
-  "top_pick_hit_rate": 0.56,
+  "matches": 178,
+  "log_loss_1x2": 0.9533,
+  "brier_1x2": 0.5649,
+  "top_pick_hit_rate": 0.5506,
   "confident_calls": {
-   "n": 45,
+   "n": 46,
    "right": 39,
-   "expected": 32.5
+   "expected": 33.2
   },
   "calibration": [
    {
@@ -164,45 +164,45 @@
    },
    {
     "bin": "10-20%",
-    "n": 54,
-    "predicted": 0.1575,
-    "observed": 0.0926
+    "n": 57,
+    "predicted": 0.1574,
+    "observed": 0.1053
    },
    {
     "bin": "20-30%",
-    "n": 226,
-    "predicted": 0.2566,
-    "observed": 0.2611
+    "n": 228,
+    "predicted": 0.2568,
+    "observed": 0.2632
    },
    {
     "bin": "30-40%",
-    "n": 143,
-    "predicted": 0.3534,
-    "observed": 0.3007
+    "n": 147,
+    "predicted": 0.3541,
+    "observed": 0.2993
    },
    {
     "bin": "40-50%",
-    "n": 209,
-    "predicted": 0.4527,
-    "observed": 0.4785
+    "n": 210,
+    "predicted": 0.4528,
+    "observed": 0.4762
    },
    {
     "bin": "50-60%",
-    "n": 283,
-    "predicted": 0.5483,
-    "observed": 0.5371
+    "n": 287,
+    "predicted": 0.548,
+    "observed": 0.5401
    },
    {
     "bin": "60-70%",
-    "n": 96,
-    "predicted": 0.6303,
-    "observed": 0.7083
+    "n": 99,
+    "predicted": 0.6299,
+    "observed": 0.7172
    },
    {
     "bin": "70-80%",
-    "n": 21,
-    "predicted": 0.735,
-    "observed": 0.7619
+    "n": 22,
+    "predicted": 0.7336,
+    "observed": 0.7273
    },
    {
     "bin": "80-90%",
@@ -213,15 +213,15 @@
   ]
  },
  "Live layers (graded legs)": {
-  "legs": 32,
+  "legs": 33,
   "right": 24,
-  "expected": 20.8,
+  "expected": 21.5,
   "brier": {
-   "model": 0.1885,
-   "vector": 0.2007,
-   "transformer": 0.2008,
-   "market": 0.1846,
-   "consensus": 0.1914
+   "model": 0.1979,
+   "vector": 0.2119,
+   "transformer": 0.2078,
+   "market": 0.1922,
+   "consensus": 0.2002
   }
  }
 }

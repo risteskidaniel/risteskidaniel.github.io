@@ -128,7 +128,7 @@ const DATA="data/";
 const MK=[["1","Home win"],["X","Draw"],["2","Away win"],["tg_3plus","3+ goals"],["tg_0_2","0–2 goals"],["gg","Both teams score"]];
 const NAME=Object.fromEntries(MK);
 const EXPL={
- model:["Model","Our core forecast.","Three rating engines (Dixon–Coles with a low-score correction, an xG-based Dixon–Coles, and a Kalman filter that tracks how team strength changes week to week) are combined with ClubElo ratings in a Bayesian Poisson regression fitted by MCMC. The output is calibrated on matches the model never trained on, then simulated 1,000,000 times, minute by minute."],
+ model:["Model","Our core forecast.","Three rating engines (Dixon–Coles with a low-score correction, an xG-based Dixon–Coles, and a Kalman filter that tracks how team strength changes week to week) are combined with ClubElo ratings (as of {ELO}) in a Bayesian Poisson regression fitted by MCMC. The output is calibrated on matches the model never trained on, then simulated 1,000,000 times, minute by minute."],
  vector:["Vector database","How the 200 most similar past matches ended.","Each match is stored as a 16-number embedding (PCA of team ratings and pre-match features). We find the 200 past matches closest by cosine similarity and count how they finished. Second opinion only."],
  transformer:["Transformer","A neural network reading each team's last 12 matches.","Each past match is a token; self-attention decides which of a team's last 12 matches matter for this one, and the network builds a 64-dimensional picture of each team. Trained on matches before July 2023, judged on 2024/25. Second opinion only."],
  market:["Market benchmark","The market's consensus view, as a probability.","The market's implied probability with the margin taken out (power method). It is the hardest benchmark in football. Shown for comparison only: it is never an input to our model. No prices are shown."],
@@ -245,7 +245,8 @@ async function render(){
   const v=document.getElementById("view"),hsh=location.hash.slice(1);
   try{
     if(!INDEX){INDEX=await getJSON("index.json");SUMMARY=await getJSON("summary.json").catch(()=>({}));
-      document.getElementById("updated").textContent="Data updated "+new Date(INDEX.generated_at).toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris",timeZoneName:"short"})+" · "+INDEX.dates.reduce((a,d)=>a+d.n,0).toLocaleString("en-GB")+" forecasts"}
+      const ed=INDEX.clubelo_date?fmtDate(INDEX.clubelo_date):"the latest weekly update";EXPL.model[2]=EXPL.model[2].replace("{ELO}",ed);
+      document.getElementById("updated").textContent="Data updated "+new Date(INDEX.generated_at).toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Paris",timeZoneName:"short"})+" · "+INDEX.dates.reduce((a,d)=>a+d.n,0).toLocaleString("en-GB")+" forecasts"+(INDEX.clubelo_date?" · ClubElo ratings from "+fmtDate(INDEX.clubelo_date):"")}
     if(hsh==="scorecard"){tabs("scorecard");v.innerHTML=scorecard();return}
     if(hsh==="journey"){tabs("journey");v.innerHTML=journey();return}
     tabs("match");
