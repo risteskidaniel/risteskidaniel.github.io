@@ -146,57 +146,57 @@
   ]
  },
  "Live (Nov 2026)": {
-  "matches": 178,
-  "log_loss_1x2": 0.9533,
-  "brier_1x2": 0.5649,
-  "top_pick_hit_rate": 0.5506,
+  "matches": 186,
+  "log_loss_1x2": 0.9502,
+  "brier_1x2": 0.5633,
+  "top_pick_hit_rate": 0.5484,
   "confident_calls": {
-   "n": 46,
-   "right": 39,
-   "expected": 33.2
+   "n": 50,
+   "right": 43,
+   "expected": 36.0
   },
   "calibration": [
    {
     "bin": "0-10%",
-    "n": 13,
+    "n": 14,
     "predicted": 0.0657,
     "observed": 0.0
    },
    {
     "bin": "10-20%",
-    "n": 57,
-    "predicted": 0.1574,
-    "observed": 0.1053
+    "n": 60,
+    "predicted": 0.1567,
+    "observed": 0.1
    },
    {
     "bin": "20-30%",
-    "n": 228,
-    "predicted": 0.2568,
-    "observed": 0.2632
+    "n": 239,
+    "predicted": 0.2563,
+    "observed": 0.2636
    },
    {
     "bin": "30-40%",
-    "n": 147,
-    "predicted": 0.3541,
-    "observed": 0.2993
+    "n": 152,
+    "predicted": 0.3534,
+    "observed": 0.3026
    },
    {
     "bin": "40-50%",
-    "n": 210,
-    "predicted": 0.4528,
-    "observed": 0.4762
+    "n": 220,
+    "predicted": 0.4542,
+    "observed": 0.4591
    },
    {
     "bin": "50-60%",
-    "n": 287,
-    "predicted": 0.548,
-    "observed": 0.5401
+    "n": 296,
+    "predicted": 0.5474,
+    "observed": 0.5473
    },
    {
     "bin": "60-70%",
-    "n": 99,
-    "predicted": 0.6299,
-    "observed": 0.7172
+    "n": 107,
+    "predicted": 0.6313,
+    "observed": 0.7196
    },
    {
     "bin": "70-80%",
@@ -206,22 +206,22 @@
    },
    {
     "bin": "80-90%",
-    "n": 5,
-    "predicted": 0.8676,
+    "n": 6,
+    "predicted": 0.8592,
     "observed": 1.0
    }
   ]
  },
  "Live layers (graded legs)": {
-  "legs": 33,
-  "right": 24,
-  "expected": 21.5,
+  "legs": 38,
+  "right": 28,
+  "expected": 24.6,
   "brier": {
-   "model": 0.1979,
-   "vector": 0.2119,
-   "transformer": 0.2078,
-   "market": 0.1922,
-   "consensus": 0.2002
+   "model": 0.1947,
+   "vector": 0.2127,
+   "transformer": 0.2091,
+   "market": 0.1911,
+   "consensus": 0.1996
   }
  }
 }

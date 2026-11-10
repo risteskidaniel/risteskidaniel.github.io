@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-08T21:29+00:00",
- "clubelo_date": "2026-11-02",
+ "generated_at": "2026-11-10T18:49+00:00",
+ "clubelo_date": "2026-11-09",
  "dates": [
   {
    "date": "2026-11-09",
@@ -8,7 +8,7 @@
    "kinds": [
     "live"
    ],
-   "graded": 0
+   "graded": 1
   },
   {
    "date": "2026-11-08",
@@ -16,7 +16,7 @@
    "kinds": [
     "live"
    ],
-   "graded": 83
+   "graded": 89
   },
   {
    "date": "2026-11-07",
@@ -24,7 +24,7 @@
    "kinds": [
     "live"
    ],
-   "graded": 94
+   "graded": 95
   },
   {
    "date": "2026-11-04",
