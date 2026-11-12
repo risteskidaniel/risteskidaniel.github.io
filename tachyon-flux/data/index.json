@@ -1,20 +1,46 @@
 {
- "generated_at": "2026-11-11T23:27+00:00",
+ "generated_at": "2026-11-12T00:34+00:00",
  "clubelo_date": "2026-11-09_fixed",
  "dates": [
   {
-   "date": "2026-11-14",
-   "n": 33,
+   "date": "2026-11-15",
+   "n": 11,
    "kinds": [
+    "intl"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-14",
+   "n": 48,
+   "kinds": [
+    "intl",
     "live"
    ],
    "graded": 0
   },
   {
    "date": "2026-11-13",
-   "n": 1,
+   "n": 28,
    "kinds": [
+    "intl",
     "live"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-12",
+   "n": 22,
+   "kinds": [
+    "intl"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-11",
+   "n": 2,
+   "kinds": [
+    "intl"
    ],
    "graded": 0
   },
