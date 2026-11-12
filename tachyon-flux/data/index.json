@@ -1,7 +1,23 @@
 {
- "generated_at": "2026-11-10T18:49+00:00",
- "clubelo_date": "2026-11-09",
+ "generated_at": "2026-11-11T23:27+00:00",
+ "clubelo_date": "2026-11-09_fixed",
  "dates": [
+  {
+   "date": "2026-11-14",
+   "n": 33,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-13",
+   "n": 1,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
   {
    "date": "2026-11-09",
    "n": 1,
