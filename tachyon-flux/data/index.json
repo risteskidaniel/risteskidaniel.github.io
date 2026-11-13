@@ -1,12 +1,13 @@
 {
- "generated_at": "2026-11-12T00:34+00:00",
+ "generated_at": "2026-11-13T14:21+00:00",
  "clubelo_date": "2026-11-09_fixed",
  "dates": [
   {
    "date": "2026-11-15",
-   "n": 11,
+   "n": 15,
    "kinds": [
-    "intl"
+    "intl",
+    "live"
    ],
    "graded": 0
   },
