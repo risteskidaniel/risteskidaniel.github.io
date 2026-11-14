@@ -146,10 +146,10 @@
   ]
  },
  "Live (Nov 2026)": {
-  "matches": 186,
-  "log_loss_1x2": 0.9502,
-  "brier_1x2": 0.5633,
-  "top_pick_hit_rate": 0.5484,
+  "matches": 187,
+  "log_loss_1x2": 0.9512,
+  "brier_1x2": 0.564,
+  "top_pick_hit_rate": 0.5455,
   "confident_calls": {
    "n": 50,
    "right": 43,
@@ -176,21 +176,21 @@
    },
    {
     "bin": "30-40%",
-    "n": 152,
-    "predicted": 0.3534,
-    "observed": 0.3026
+    "n": 155,
+    "predicted": 0.353,
+    "observed": 0.3032
    },
    {
     "bin": "40-50%",
-    "n": 220,
-    "predicted": 0.4542,
-    "observed": 0.4591
+    "n": 221,
+    "predicted": 0.4541,
+    "observed": 0.4615
    },
    {
     "bin": "50-60%",
-    "n": 296,
-    "predicted": 0.5474,
-    "observed": 0.5473
+    "n": 298,
+    "predicted": 0.5473,
+    "observed": 0.547
    },
    {
     "bin": "60-70%",
