@@ -4,6 +4,21 @@ The honest log of Tachyon Flux (internal name: Project Overlord): what we built,
 
 ---
 
+## 2026-11-14 · International results and scorecard
+
+**Added**
+- Final scores for international matches (Nations League, AFCON and CONCACAF qualifiers), loaded automatically with every evening update.
+- New scorecard group: **Live internationals (Nov 2026)**. These forecasts come from a separate national-team model (internal name xcomp), not from the club model, so they are scored on their own and never mixed into the club numbers.
+
+**Fixed**
+- The header showed "ClubElo ratings from Invalid Date"; it now shows the date of the ratings file.
+- On matches that are not candidate picks, the "What is a candidate pick?" text showed a raw placeholder instead of the explanation.
+
+**Behind the scenes (betting checklist, not shown on the site)**
+- Stricter rules for picks: only 1X2 and 0–2 / 3+ goals; price 1.30–2.00; model and market within 8 points; no "0–2 goals" when the favourite is priced below 1.20; tighter limits for internationals. Last week's 20 legs went 12/20, exactly what the model expected (12.1), but the prices were too short to make money; under the new rules none of them would have been played.
+
+---
+
 ## 2026-11-08 · Tachyon Flux goes public
 
 **Added**
