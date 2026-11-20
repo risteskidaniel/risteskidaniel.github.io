@@ -1,14 +1,46 @@
 {
- "generated_at": "2026-11-14T12:51+00:00",
+ "generated_at": "2026-11-20T18:19+00:00",
  "clubelo_date": "2026-11-09",
  "dates": [
+  {
+   "date": "2026-11-23",
+   "n": 11,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-22",
+   "n": 71,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-21",
+   "n": 128,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
+  {
+   "date": "2026-11-20",
+   "n": 21,
+   "kinds": [
+    "live"
+   ],
+   "graded": 0
+  },
   {
    "date": "2026-11-17",
    "n": 33,
    "kinds": [
     "intl"
    ],
-   "graded": 0
+   "graded": 33
   },
   {
    "date": "2026-11-16",
@@ -17,7 +49,7 @@
     "intl",
     "live"
    ],
-   "graded": 0
+   "graded": 20
   },
   {
    "date": "2026-11-15",
@@ -26,7 +58,7 @@
     "intl",
     "live"
    ],
-   "graded": 0
+   "graded": 15
   },
   {
    "date": "2026-11-14",
@@ -35,7 +67,7 @@
     "intl",
     "live"
    ],
-   "graded": 2
+   "graded": 41
   },
   {
    "date": "2026-11-13",
